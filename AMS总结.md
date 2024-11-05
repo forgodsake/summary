@@ -6,25 +6,6 @@
 
 
 
-# Jetpack Lifecycle原理分析
-
-##### 核心原理：通过在父Activity的onCreate()生命周期方法添加没有布局的Fragment,来监听Activity的生命周期函数变化。并在各个生命周期函数中通过dispatch()进行分发。
-
-生命周期的五种状态及流转事件
-	
-	Destroyed    Initilized     Created        Started          Resumed
-	
-	                 ON_CREATE------>ON_START------->ON_RESUME
-	                 
-		<-------------ON_DESTROY------ON_STOP<--------ON_PAUSE
-		
-		以上为各种状态及生命周期事件
-		
----
-想要让LiveData不发送黏性事件，在它的considerNotify()函数里，需要想办法让它的lastVersion和mVersion相等，否则会使得代码往下继续执行发送数据。
-
-
-
 
 
 
