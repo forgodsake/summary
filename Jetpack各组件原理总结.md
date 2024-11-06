@@ -18,7 +18,7 @@
 
 # LiveData原理分析 
 
- LiveData的observe函数会将observer对象包装为LifecycleBoundObserver。该类的构造方法接收owner和observer，从而将观察者和宿主绑定到一起，同时将包装类添加到activity的lifecycle的观察者里面。从而在生命周期活跃时通过 
+ LiveData的observe函数会将observer对象包装为LifecycleBoundObserver。该类的构造方法接收owner和observer，从而将观察者和宿主绑定到一起。同时observe函数会执行owner.getLifecycle().addObserver(wrapper);将包装类添加到activity的lifecycle的观察者里面。从而在生命周期活跃时通过 
  ```
  onStateChanged(source,event) ==> 
  activeStateChanged ==>
@@ -26,7 +26,7 @@
  considerNotify(initiator); => 
  observer.mObserver.onChanged((T) mData); 
 ```
- 调用链来通知变化。
+ 调用链来通知观察者更新数据。
  
  在调用set和post函数时，会通过
  ```
@@ -34,14 +34,14 @@
  considerNotify(iterator.next().getValue()); ==> 
  observer.mObserver.onChanged((T) mData); 
 ```
- 调用链来通知变化。
+ 调用链来通知观察者更新数据。
 
 
 # DataBinding原理分析
 
-Databinding框架会把databinding类型的xml布局文件进行拆分，生成两个xml，一个正常的布局xml供我们的布局解析器正常解析加载，另一份类型为Layout包含Variables和Targets的是供databinding框架自己使用，其中变量部分为声明的变量，目标则包含根布局和使用绑定的View，并为它们生成特定的tag（根布局为layout/layout文件名_0,View为binding_xx(xx为数字)），这样即使不需要id也可以进行赋值操作。
+Databinding框架会把databinding类型的xml布局文件进行拆分，生成两个xml，一个正常的布局xml供我们的布局解析器正常解析加载，另一份根布局为Layout包含Variables和Targets的，仅供databinding框架自己使用，其中Variables部分为原始layout的data部分声明的变量，Targets中则包含根布局和使用绑定的View，并为它们生成特定的tag（根布局为layout/layout文件名_0,View为binding_xx(xx为数字)），这样即使不需要id也可以进行赋值操作。
 
-当我们调用DataBindingUtil.setContentView时，除了将页面布局设置给activity，还会通过以下函数调用链将用到动态数据的View和对应数据绑定起来。
+当我们调用DataBindingUtil.setContentView时，除了将页面布局设置给activity，还会通过以下函数调用链将用到动态数据的View和对应数据绑定起来(在生成的binding类的构造方法中通过调用mapBindings函数)。
 ```
 DataBindingUtil.setContentView(this,R.layout.activity_another) ==>
 setContentView(activity, layoutId, sDefaultComponent) ==>
