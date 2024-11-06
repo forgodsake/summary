@@ -90,7 +90,12 @@ ZygoteConnection processOneCommand(...)
 ZygoteInit      zygoteInit(...)
 				RuntimeInit.commonInit();
 		        ZygoteInit.nativeZygoteInit();
-RuntimeInit     applicationInit(...)		        
+RuntimeInit     applicationInit(...)	
+ZygoteInit      main(...)
+				caller = ZygoteServer.runSelectLoop(...)
+				// caller是一个runnable 
+				// 封装了ActivityThread的main函数
+				caller.run(...) 
 ActivityThread  main(...)
 AMS             attachApplication(...)
 ATMS            attachApplication(...)
