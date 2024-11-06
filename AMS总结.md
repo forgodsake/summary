@@ -68,6 +68,39 @@ ActivityThread  handleLaunchActivity(...)
 				handleResumeActivity(...)
 ```
 
+对于未创建进程的，会执行以下函数调用链：
+```
+ActivityManagerInternal::startProcess
+ActivityManagerService.LocalService startProcess(...)
+				startProcessLocked(...)
+				mProcessList.startProcessLocked(...)
+ProcessList     startProcessLocked(...)
+				startProcess(...)
+				appZygote.getProcess().start(...)
+Process         start(...)
+				ZYGOTE_PROCESS.start(...)
+ZygoteProcess   start(...)
+				startViaZygote(...)
+				zygoteSendArgsAndGetResult(...)
+				attemptZygoteSendArgsAndGetResult(...)
+ZygoteServer    runSelectLoop(...)
+ZygoteConnection processOneCommand(...)
+				Zygote.forkAndSpecialize(...)
+				handleChildProc(...)
+ZygoteInit      zygoteInit(...)
+				RuntimeInit.commonInit();
+		        ZygoteInit.nativeZygoteInit();
+RuntimeInit     applicationInit(...)		        
+ActivityThread  main(...)
+AMS             attachApplication(...)
+ATMS            attachApplication(...)
+RootWindowContainer attachApplication(...)
+				startActivityForAttachedApplicationIfNeeded(...)
+				// 到这里会再次进入之前的启动流程 此时Process已经创建，
+				// 开始走接下来的流程
+				mStackSupervisor.realStartActivityLocked(...)
+```
+
 
 1，在ActivityThread的performLaunchActivity中，通过反射创建了对应的Activity实例，通过调用activity的attach方法，创建了对应的PhoneWindow，将其与Activity关联起来。
 
