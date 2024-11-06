@@ -73,3 +73,125 @@ ActivityAnotherBindingImpl的executeBindings()函数，最终进行View数据的
 视图绑定对象更新监听器的设置。
 
 当我们设置数据时，再次通过ActivityAnotherBindingImpl的super.requestRebind经过层次调用再次调用到executeBindings()函数，实现对数据的更新。
+
+# ViewModel实现原理
+
+ViewModel之所以能够在Activity发生旋转等配置项变化时保留其中数据不被清理，是因为ComponentAcitivty实现了ViewModelStoreOwner接口，而在实现函数getViewModelStore中，生成了一个ViewModelStore来保存页面的ViewModel，这个ViewModelStore又保存在了页面的NonConfiguratioInstances当中。
+```
+
+@Override
+    public ViewModelStore getViewModelStore() {
+        if (getApplication() == null) {
+            throw new IllegalStateException("Your activity is not yet attached to the "
+                    + "Application instance. You can't request ViewModel before onCreate call.");
+        }
+        ensureViewModelStore();
+        return mViewModelStore;
+    }
+
+    @SuppressWarnings("WeakerAccess") /* synthetic access */
+    void ensureViewModelStore() {
+        if (mViewModelStore == null) {
+            NonConfigurationInstances nc =
+                    (NonConfigurationInstances) getLastNonConfigurationInstance();
+            if (nc != null) {
+                // Restore the ViewModelStore from NonConfigurationInstances
+                mViewModelStore = nc.viewModelStore;
+            }
+            if (mViewModelStore == null) {
+                mViewModelStore = new ViewModelStore();
+            }
+        }
+    }
+
+```
+
+
+这个NonConfigurationInstances又是从何而来的呢，通过方法跟踪，可找到其在Activity的attach方法中通过方法参数传入。Activity的attach方法是在Activity的加载流程中由ActivityThread的performLaunchActivity调用的，调用时传入的是ActivityRecordClient中的NonConfigurationInstances对象，那ActivityRecordClient又是在什么时候保存的NonConfigurationInstances对象的呢，这就要从Activity因为配置变化被销毁时查起了。
+
+当Activity因为配置变化被销毁时，在其销毁流程中ActivityThread会调用performDestroyActivity方法，该方法内部会回调Activity的retainNonConfigurationInstances方法获取NonConfigurationInstances并保存在ActivityRecordClient中以备之后Activity重建之需。
+该函数内部又调用了onRetainNonConfigurationInstance()方法，而该方法由ComponentActivity进行了覆写。
+```
+public final Object onRetainNonConfigurationInstance() {
+        // Maintain backward compatibility.
+        Object custom = onRetainCustomNonConfigurationInstance();
+
+        ViewModelStore viewModelStore = mViewModelStore;
+        if (viewModelStore == null) {
+            // No one called getViewModelStore(), so see if there was an existing
+            // ViewModelStore from our last NonConfigurationInstance
+            NonConfigurationInstances nc =
+                    (NonConfigurationInstances) getLastNonConfigurationInstance();
+            if (nc != null) {
+                viewModelStore = nc.viewModelStore;
+            }
+        }
+
+        if (viewModelStore == null && custom == null) {
+            return null;
+        }
+
+        NonConfigurationInstances nci = new NonConfigurationInstances();
+        nci.custom = custom;
+        nci.viewModelStore = viewModelStore;
+        return nci;
+    }
+
+```
+
+onRetainNonConfigurationInstances方法的主要逻辑就是创建了一个NonConfigurationInstances对象(此NonConfigurationInstances类与前头的NonConfigurationInstances类不是同一个类)，并将当前Activity的ViewModelStore保存到了所创建的对象的viewModelStore变量中，从而使得Activity在销毁后重建时能获取到销毁前的ViewModelStore，进而可获取到销毁前的ViewModel。onRetainNoConfigurationInstance方法返回的NonConfigurationInstance对象最终被存储到了retainNonConfigurationInstances方法中创建的NonConfigurationInstances对象的activity变量里。
+
+```
+
+NonConfigurationInstances retainNonConfigurationInstances() {
+        Object activity = onRetainNonConfigurationInstance();
+        HashMap<String, Object> children = onRetainNonConfigurationChildInstances();
+        FragmentManagerNonConfig fragments = mFragments.retainNestedNonConfig();
+
+        // We're already stopped but we've been asked to retain.
+        // Our fragments are taken care of but we need to mark the loaders for retention.
+        // In order to do this correctly we need to restart the loaders first before
+        // handing them off to the next activity.
+        mFragments.doLoaderStart();
+        mFragments.doLoaderStop(true);
+        ArrayMap<String, LoaderManager> loaders = mFragments.retainLoaderNonConfig();
+
+        if (activity == null && children == null && fragments == null && loaders == null
+                && mVoiceInteractor == null) {
+            return null;
+        }
+
+        NonConfigurationInstances nci = new NonConfigurationInstances();
+        nci.activity = activity;
+        nci.children = children;
+        nci.fragments = fragments;
+        nci.loaders = loaders;
+        if (mVoiceInteractor != null) {
+            mVoiceInteractor.retainInstance();
+            nci.voiceInteractor = mVoiceInteractor;
+        }
+        return nci;
+    }
+
+```
+
+需要注意的是，如果Activity是正常的销毁，那么ViewModelStore会清空其保存的所有ViewModel，而如果是因为配置变化而被销毁，则不清空，这个逻辑可由ComponentActivity的构造函数中觅得：
+
+```
+getLifecycle().addObserver(new LifecycleEventObserver() {
+            @Override
+            public void onStateChanged(@NonNull LifecycleOwner source,
+                    @NonNull Lifecycle.Event event) {
+                if (event == Lifecycle.Event.ON_DESTROY) {
+                    // Clear out the available context
+                    mContextAwareHelper.clearAvailableContext();
+                    // And clear the ViewModelStore
+                    if (!isChangingConfigurations()) {
+                        getViewModelStore().clear();
+                    }
+                }
+            }
+        });
+
+```
+
