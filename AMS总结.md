@@ -4,38 +4,44 @@
 ```
 Activity startActivityForResult(intent, -1)
 Instrumentation  execStartActivity(...)
-				 ActivityTaskManager.getService().startActivity(...)
-ActivityTaskManagerService startActivity(...)
+				 ActivityTaskManager
+				 .getService()
+				 .startActivity(...)
+ActivityTaskManagerService 
+				 startActivity(...)
 				 startActivityAsUser(...)
 				 getActivityStartController()
-				.obtainStarter(intent, "startActivityAsUser")
-                .setCaller(caller)
-                .setCallingPackage(callingPackage)
-                .setCallingFeatureId(callingFeatureId)
-                .setResolvedType(resolvedType)
-                .setResultTo(resultTo)
-                .setResultWho(resultWho)
-                .setRequestCode(requestCode)
-                .setStartFlags(startFlags)
-                .setProfilerInfo(profilerInfo)
-                .setActivityOptions(bOptions)
-                .setUserId(userId)
-                .execute();
+				 .obtainStarter(intent, "startActivityAsUser")
+                 .setCaller(caller)
+                 .setCallingPackage(callingPackage)
+                 .setCallingFeatureId(callingFeatureId)
+                 .setResolvedType(resolvedType)
+                 .setResultTo(resultTo)
+                 .setResultWho(resultWho)
+                 .setRequestCode(requestCode)
+                 .setStartFlags(startFlags)
+                 .setProfilerInfo(profilerInfo)
+                 .setActivityOptions(bOptions)
+                 .setUserId(userId)
+                 .execute();
                 
 ActivityStarter //在此做了大量工作，生成对应的ActivityRecord
 				executeRequest(mRequest);
 				startActivityUnchecked(...);
-				//启动Activity，并计算Activity是否应该添加到现有Task或执行顶部
-				//Activity的onNewIntent
+				//启动Activity，并计算Activity是否应该添加到
+				//现有Task或执行顶部Activity的onNewIntent
 				startActivityInner(...);
 				mRWC.resumeFocusedStacksTopActivities(...)
 RootWindowContainer 
-				focusedStack.resumeTopActivityUncheckedLocked(...)
+				focusedStack
+				.resumeTopActivityUncheckedLocked(...)
 				
 ActivityStack   resumeTopActivityInnerLocked(...)
-				mStackSupervisor.startSpecificActivity(next, true, true);
+				mStackSupervisor
+				.startSpecificActivity(next, true, true);
 ActivityStackSupervisor 
-				//在此判断该进程是否已经启动 已启动的执行realStartActivityLocked
+				//在此判断该进程是否已经启动
+				//已启动的执行realStartActivityLocked 
 				//未启动的执行 mService.startProcessAsync
 				startSpecificActivity(...)
 				realStartActivityLocked(...)
@@ -44,13 +50,16 @@ ActivityStackSupervisor
 	           .getLifecycleManager()
 	           .scheduleTransaction(clientTransaction);
 				
-ClientLifecycleManager	scheduleTransaction(...)			
-				  transaction.schedule();
+ClientLifecycleManager	
+				scheduleTransaction(...)			
+				transaction.schedule();
 ClientTransaction  
-				//此处的client为IApplicationThread，所以这里进行了跨进程调用
+				//此处的client为IApplicationThread，
+				//所以这里进行了跨进程调用
 				mClient.scheduleTransaction(this);
-ApplicationThread scheduleTransaction
-ClientTransactionHandler scheduleTransaction
+ApplicationThread scheduleTransaction(...)
+ClientTransactionHandler 
+				scheduleTransaction(...)
 
     void scheduleTransaction(ClientTransaction transaction) {
         transaction.preExecute(this);
@@ -60,9 +69,11 @@ ActivityThread H handleMessage(...)
 				transaction = (ClientTransaction) msg.obj;
                 mTransactionExecutor.execute(transaction);
 TransactionExecutor		
-				// 通过以下两个函数执行完从当前生命周期到目标生命周期的整个流程
-				// 执行LaunchActivityItem、ResumeActivityItem等等的excute函数
-				// 并通过cycleToPath函数执行执行完所有中间状态	
+				// 通过以下两个函数执行完
+				// 从当前生命周期到目标生命周期的整个流程
+				// 执行LaunchActivityItem、
+				// ResumeActivityItem等等的excute函数
+				// 并通过cycleToPath()函数执行执行完所有中间状态	
 				executeCallbacks(transaction);
                 executeLifecycleState(transaction);
 
