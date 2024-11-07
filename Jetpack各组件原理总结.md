@@ -215,7 +215,6 @@ Room使用总结
 Entity层
 在字段上使用@ColumnInfo 可以对字段设置数据库内的别名，使用@Primarykey设置为主键。
 
-
 Dao层
 Dao层一般会在对应的Dao接口中使用@Insert、@Delete、@Update、@Query 四种注解用于函数上来进行数据表的增删改查操作。
 
