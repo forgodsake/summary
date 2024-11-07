@@ -7,7 +7,8 @@ Instrumentation  execStartActivity(...)
 				 ActivityTaskManager.getService().startActivity(...)
 ActivityTaskManagerService startActivity(...)
 				 startActivityAsUser(...)
-getActivityStartController().obtainStarter(intent, "startActivityAsUser")
+				 getActivityStartController()
+				.obtainStarter(intent, "startActivityAsUser")
                 .setCaller(caller)
                 .setCallingPackage(callingPackage)
                 .setCallingFeatureId(callingFeatureId)
@@ -21,15 +22,14 @@ getActivityStartController().obtainStarter(intent, "startActivityAsUser")
                 .setUserId(userId)
                 .execute();
                 
-                //在此做了大量工作，生成对应的ActivityRecord
+ActivityStarter //在此做了大量工作，生成对应的ActivityRecord
 				executeRequest(mRequest);
 				startActivityUnchecked(...);
 				//启动Activity，并计算Activity是否应该添加到现有Task或执行顶部
 				//Activity的onNewIntent
 				startActivityInner(...);
-				mRootWindowContainer.resumeFocusedStacksTopActivities(
-                        mTargetStack, mStartActivity, mOptions);
-RootWindowContainer resumeFocusedStacksTopActivities(...)
+				mRWC.resumeFocusedStacksTopActivities(...)
+RootWindowContainer 
 				focusedStack.resumeTopActivityUncheckedLocked(...)
 				
 ActivityStack   resumeTopActivityInnerLocked(...)
@@ -39,14 +39,17 @@ ActivityStackSupervisor
 				//未启动的执行 mService.startProcessAsync
 				startSpecificActivity(...)
 				realStartActivityLocked(...)
-				mService.getLifecycleManager().scheduleTransaction(clientTransaction);
+				
+	            mService
+	           .getLifecycleManager()
+	           .scheduleTransaction(clientTransaction);
 				
 ClientLifecycleManager	scheduleTransaction(...)			
 				  transaction.schedule();
 ClientTransaction  
 				//此处的client为IApplicationThread，所以这里进行了跨进程调用
 				mClient.scheduleTransaction(this);
-ActivityThread.ApplicationThread scheduleTransaction
+ApplicationThread scheduleTransaction
 ClientTransactionHandler scheduleTransaction
 
     void scheduleTransaction(ClientTransaction transaction) {
@@ -54,12 +57,12 @@ ClientTransactionHandler scheduleTransaction
         sendMessage(ActivityThread.H.EXECUTE_TRANSACTION, transaction);
     }
 ActivityThread H handleMessage(...)
-				final ClientTransaction transaction = (ClientTransaction) msg.obj;
+				transaction = (ClientTransaction) msg.obj;
                 mTransactionExecutor.execute(transaction);
 TransactionExecutor		
 				// 通过以下两个函数执行完从当前生命周期到目标生命周期的整个流程
 				// 执行LaunchActivityItem、ResumeActivityItem等等的excute函数
-				// 并通过cycleToPath函数执行执行完所以中间状态	
+				// 并通过cycleToPath函数执行执行完所有中间状态	
 				executeCallbacks(transaction);
                 executeLifecycleState(transaction);
 
@@ -71,7 +74,8 @@ ActivityThread  handleLaunchActivity(...)
 对于未创建进程的，会执行以下函数调用链：
 ```
 ActivityManagerInternal::startProcess
-ActivityManagerService.LocalService startProcess(...)
+ActivityManagerService.LocalService 
+				startProcess(...)
 				startProcessLocked(...)
 				mProcessList.startProcessLocked(...)
 ProcessList     startProcessLocked(...)
@@ -98,6 +102,13 @@ ZygoteInit      main(...)
 				caller.run(...) 
 ActivityThread  main(...)
 AMS             attachApplication(...)
+				// 执行创建Application、ContentProvider,
+				// 调用App的attachBaseContext、onCreate
+				thread.bindApplication
+				// 将thread交给ProcessRecord保管
+				app.makeActive(thread, mProcessStats);
+				// 更新进程的LRU状态
+				mProcessList.updateLruProcessLocked(app, false, null);
 ATMS            attachApplication(...)
 RootWindowContainer attachApplication(...)
 				startActivityForAttachedApplicationIfNeeded(...)

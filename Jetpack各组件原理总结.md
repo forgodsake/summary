@@ -194,4 +194,5 @@ getLifecycle().addObserver(new LifecycleEventObserver() {
         });
 
 ```
+
 Room使用总结
