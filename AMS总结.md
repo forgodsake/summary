@@ -118,7 +118,7 @@ AMS             attachApplication(...)
 				thread.bindApplication
 				// 将thread交给ProcessRecord保管
 				app.makeActive(thread, mProcessStats);
-				// 更新进程的LRU状态
+				// 添加app到ProcessList的LRU列表
 				mProcessList.updateLruProcessLocked(app, false, null);
 ATMS            attachApplication(...)
 RootWindowContainer attachApplication(...)
