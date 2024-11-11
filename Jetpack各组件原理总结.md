@@ -220,7 +220,7 @@ Dao层一般会在对应的Dao接口中使用@Insert、@Delete、@Update、@Quer
 
 
 DataBase层
-@Database注解上需要entities参数设置数据表对应的实体类数组；version参数设置数据库版本号，当数据表发生变动时，需要更改版本号，并在构建Database时增加migration函数进行升级操作来更改旧版数据；exportSchema参数来设定是否将数据库的修改相关sql语句导出，方便直接拿来使用。
+@Database注解上需要entities参数设置数据表对应的实体类数组；version参数设置数据库版本号，当数据表发生变动时，需要更改版本号，并在构建Database时增加addMigrations函数进行升级操作来更改旧版数据；exportSchema参数来设定是否将数据库的修改相关sql语句导出，方便直接拿来使用。
 
 一般数据库类会使用静态单列函数来创建全局可用的数据库实例，方便进行直接获取。
 需要在Database类里面声明abstract类型的Dao实例，Room框架会默认生成对应的Impl实现类。
