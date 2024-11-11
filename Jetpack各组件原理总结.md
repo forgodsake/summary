@@ -213,11 +213,10 @@ Room使用总结
 使用@Entity\@Dao\@Database 三个注解作为类的注解分别进行数据层、操作层、数据库实例层的编写。
 
 Entity层
-在字段上使用@ColumnInfo 可以对字段设置数据库内的别名。
+在字段上使用@ColumnInfo 可以对字段设置数据库内的别名，使用@Primarykey设置为主键。
 
 Dao层
 Dao层一般会在对应的Dao接口中使用@Insert、@Delete、@Update、@Query 四种注解用于函数上来进行数据表的增删改查操作。
-
 
 DataBase层
 @Database注解上需要entities参数设置数据表对应的实体类数组；version参数设置数据库版本号，当数据表发生变动时，需要更改版本号，并在构建Database时增加addMigrations函数进行升级操作来更改旧版数据；exportSchema参数来设定是否将数据库的修改相关sql语句导出，方便直接拿来使用。
