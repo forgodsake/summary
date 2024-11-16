@@ -7,7 +7,7 @@ ContextImpl appContext = createBaseContextForActivity(r);
 ```
 
 之后会使用反射创建的activity的activity.attach使得该Activity和Context进行绑定。
-那么当追踪bindService函数d调用，会发现调用到ContextWrapper的bindService函数，并在该函数转到mBase.bindService(service, conn, flags);这里的mBase就是上面的ContextImpl。
+那么当追踪bindService函数调用，会发现调用到ContextWrapper的bindService函数，并在该函数转到mBase.bindService(service, conn, flags);这里的mBase就是上面的ContextImpl。
 
 查看ContextImpl的bindService函数，有以下函数调用链：
 ```
