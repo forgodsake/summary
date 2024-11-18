@@ -21,8 +21,25 @@ ContextImpl  bindService ===>
 			 //所以返回的ServiceDispatcher是LoadedApk
 			 //内部的ServiceDispatcher.InnerConnection
 			 //实现了Stub，方便进行跨进程调用
+			 //紧接着调用了AMS的bindIsolatedService
+			 //将创建服务及绑定的操作交给AMS
 AMS          ActivityManager.getService().bindIsolatedService
-			 //进行启动服务进程等一系列系统函数
+			 //进行启动服务进程等一系列框架层调用
+ActiveService
+			 bindServiceLocked
+			 bringUpServiceLocked
+			 realStartServiceLocked
+ApplicationThread
+			 scheduleCreateService
+ActiveService
+			 requestServiceBindingsLocked
+ApplicationThread
+			 scheduleBindService
+			 handleBindService
+ActivityManagerService
+			 publishService
+ActiveService
+			 publishServiceLocked
 ServiceDispatcher.InnerConnection
 			 connected	
 ServiceDispatcher
