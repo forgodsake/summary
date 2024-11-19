@@ -339,7 +339,7 @@ bool    checkSubclass(const void* subclassID) const
 
 ```
 
-由于在进程的初始化注册jni函数时,gBinderOffsets与我们的env信息相关，所以每个进程都不相同：
+由于内核传递时会将BINDER_TYPE_BINDER转为BINDER_TYPE_HANDLE类型，所以在上面unflattenBinder函数中，得到的是BpBinder类型的IBinder，又由于BpBinder没有实现checkSubclass函数，调用的是父类IBinder的checkSubclass，返回false，代码往下走。其中gBinderOffsets是在进程的初始化注册jni函数时定义的：
 
 ```
 static int int_register_android_os_Binder(JNIEnv* env)
@@ -359,7 +359,7 @@ static int int_register_android_os_Binder(JNIEnv* env)
 
 ```
 
-所以javaObjectForIBinder()函数最终返回的是BinderProxy类型对象。而此时，我们还在AMS当中（SystemServer进程），所以最终返回Client端，还需要进行一次传输。这一次与以上调用过程略有不同,首先是writeStrongBinder时：
+所以javaObjectForIBinder()函数最终返回的是BinderProxy类型对象。而此时，我们还在AMS当中（SystemServer进程）。最终返回Client端，还需要进行一次传输。这一次与以上调用过程略有不同,主要体现在writeStrongBinder时，ibinderForJavaObject返回的是一个BpBinder类型对象。导致最终写入的obj.hdr.type = BINDER_TYPE_HANDLE：
 
 ```
 sp<IBinder> ibinderForJavaObject(JNIEnv* env, jobject obj)
