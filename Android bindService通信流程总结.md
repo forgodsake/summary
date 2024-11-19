@@ -205,21 +205,17 @@ status_t Parcel::flattenBinder(const sp<IBinder>& binder)
 }
 
 finishFlattenBinder(binder, obj)
-status_t Parcel::finishUnflattenBinder(
-    const sp<IBinder>& binder, sp<IBinder>* out) const
+status_t Parcel::finishFlattenBinder(
+    const sp<IBinder>& binder, const flat_binder_object& flat)
 {
-    int32_t stability;
-    status_t status = readInt32(&stability);
+    // 写入内存区域，这一块没有接触过，暂时先不管，后面研究
+    // 理解为将IBinder保存到内存中的某个特定区域
+    status_t status = writeObject(flat, false);
     if (status != OK) return status;
 
-    status = internal::Stability::set(binder.get(), stability, true /*log*/);
-    if (status != OK) return status;
-
-    // out指向这个内存区域
-    *out = binder;
-    return OK;
+    internal::Stability::tryMarkCompilationUnit(binder.get());
+    return writeInt32(internal::Stability::get(binder.get()));
 }
-
 // 经过以上操作，将IBinder保存到内存中的某个特定区域
 ```
 
