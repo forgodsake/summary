@@ -61,11 +61,12 @@ in\out的概念
 AIDL中的定向 tag 表示了在跨进程通信中数据的流向，其中 in 表示数据由客户端流向服务端， out 表示数据由服务端流向客户端，而 inout 则表示数据可在服务端与客户端之间双向流通。
 （注意：针对in\out,客户端观察的应该是传参对象本身，而不是return返回的值）
 
-BinderProxy!
-	在我们使用Service配合aidl进行自定义服务的开发时，因为系统的良好设计，甚至会觉得像是在同一个进程操作函数一样，对于具体的跨进程调用很无感。其实这是因为系统和编译器帮我们做了太多事。
-	首先，当我们查看定义好的aidl经过编译生成的java类，查看里面的Stub或者Proxy。会发现它们要么继承自Binder，要么持有Binder的引用。所以可以说是Binder在帮我们进行跨进程的调用。
-	其次，在Binder通信过程中，客户端涉及到传递binder的，在java层都会被系统转化为BinderProxy，而这，就是aidl自动生成的java文件中，Proxy类持有的mRemote的实际java类型。
-	已知bindService过程中，通过Ixxxx.Stub().asInterface(binder)得到对应的Proxy对象。而追踪整个bindService流程，会发现在handleBindService时，有如下代码：
+##### BinderProxy!!!
+	在我们使用Service配合aidl进行自定义服务的开发时，因为系统的良好设计，甚至会觉得跟平时在App内部主进程操作函数没有太大区别，以至于对于具体如何跨进程调用基本无感。其实这是因为系统和编译器帮我们做了太多事情。
+	当我们查看定义好的aidl文件经过编译生成的java类里面的Stub或者Proxy。会发现它们要么继承自Binder，要么持有Binder的引用。所以可以说是Binder在帮我们进行跨进程的调用。
+	在Binder通信过程中，客户端涉及到传递binder的，在java层都会被系统转化为BinderProxy，而这，也是aidl自动生成的java文件中，Proxy类持有的mRemote的实际java类型。
+	已知bindService过程中，通过Ixxxx.Stub().asInterface(binder)得到对应的Proxy对象。而我们的实际函数调用，都是通过Proxy内部的mRemote使用transact函数传递不同参数来实现的。那么，这个BinderProxy是在哪里生成的呢？
+	追踪整个bindService流程，会发现在handleBindService时，有如下代码：
 	
 ```
 IBinder binder = s.onBind(data.intent);
