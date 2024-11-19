@@ -67,7 +67,7 @@ AIDL中的定向 tag 表示了在跨进程通信中数据的流向，其中 in �
 	在Binder通信过程中，客户端涉及到传递binder的，在java层都会被系统转化为BinderProxy，而这，也是aidl自动生成的java文件中，Proxy类持有的mRemote的实际java类型。
 	已知bindService过程中，通过Ixxxx.Stub().asInterface(binder)得到对应的Proxy对象。而我们的实际函数调用，都是通过Proxy内部的mRemote使用transact函数传递不同参数来实现的。那么，这个BinderProxy是在哪里生成的呢？
 	追踪整个bindService流程，会发现在handleBindService时，有如下代码：
-	
+
 ```
 // 这里手动调用创建的Service的onBind函数
 IBinder binder = s.onBind(data.intent);
@@ -205,6 +205,21 @@ status_t Parcel::flattenBinder(const sp<IBinder>& binder)
 }
 
 finishFlattenBinder(binder, obj)
+status_t Parcel::finishUnflattenBinder(
+    const sp<IBinder>& binder, sp<IBinder>* out) const
+{
+    int32_t stability;
+    status_t status = readInt32(&stability);
+    if (status != OK) return status;
+
+    status = internal::Stability::set(binder.get(), stability, true /*log*/);
+    if (status != OK) return status;
+
+    // out指向这个内存区域
+    *out = binder;
+    return OK;
+}
+
 // 经过以上操作，将IBinder保存到内存中的某个特定区域
 ```
 
