@@ -69,13 +69,14 @@ AIDL中的定向 tag 表示了在跨进程通信中数据的流向，其中 in �
 	追踪整个bindService流程，会发现在handleBindService时，有如下代码：
 	
 ```
+// 这里手动调用创建的Service的onBind函数
 IBinder binder = s.onBind(data.intent);
 // 告诉SystemServer该服务已准备就绪
 ActivityManager.getService().publishService(
 data.token, data.intent, binder);
 ```
 
-这里调用了s.onBind(data.intent)函数，熟悉自定义Service的都明白，这个函数返回的正是我们实现的完整Stub类，而接下来的ActivityManager.getService().publishService正好进行了跨进程操作，该函数的最后一个参数正是我们的stub。继续查看ActivityManager.getService()，发现该函数返回的是IActivityManager.aidl生成的Proxy类：
+这里调用了s.onBind(data.intent)函数，熟悉自定义Service的都明白，这个函数返回的正是我们实现的完整Stub类，而接下来的ActivityManager.getService().publishService正好进行了跨进程操作，该函数传递的最后一个参数正是我们的stub。继续查看ActivityManager.getService()，发现该函数返回的是IActivityManager.aidl生成的Proxy类：
 
 ```
 final IBinder b = ServiceManager.getService(Context.ACTIVITY_SERVICE);
