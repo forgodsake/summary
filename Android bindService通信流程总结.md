@@ -31,10 +31,11 @@ ActiveService
 			 // 在bringUp函数的最后
 			 // 会进行判断，如果进程不存在
 			 // 会执行开启进程的代码
+			 // mAm.startProcessLocked
 			 realStartServiceLocked
-ApplicationThread
-			 scheduleCreateService
-ActiveService
+			 // 在这个函数内部会调用app.thread去创建服务
+			 app.thread.scheduleCreateService
+			 //紧接着调用自身的请求绑定服务函数
 			 requestServiceBindingsLocked
 ApplicationThread
 			 scheduleBindService
@@ -129,7 +130,7 @@ sp<IBinder> ibinderForJavaObject(JNIEnv* env, jobject obj)
     if (env->IsInstanceOf(obj, gBinderOffsets.mClass)) {
         JavaBBinderHolder* jbh = (JavaBBinderHolder*)
             env->GetLongField(obj, gBinderOffsets.mObject);
-        // 、返回一个IBinder
+        // 返回一个IBinder
         return jbh->get(env, obj);
     }
 
