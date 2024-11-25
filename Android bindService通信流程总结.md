@@ -518,6 +518,10 @@ static int binder_translate_handle(struct flat_binder_object *fp,
 
 	//......
 	binder_node_lock(node);
+	// 这里的binder_node 代表一个binder实体
+	// proc 表示binder所在的进程
+	// binder_transaction代表执行binder_transaction()
+	// 过程创建的结构体,其中to_proc表示接收端进程
 	if (node->proc == target_proc) {
 		// 这里正好与binder_translate_binder相反 
 		// 当传输的是BINDER_TYPE_HANDLE类型，
