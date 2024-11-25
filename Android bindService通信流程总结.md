@@ -120,7 +120,23 @@ final IActivityManager am = IActivityManager.Stub.asInterface(b);
 可以看到，通过_data.writeStrongBinder将我们的stub写入到了Parcel对象，紧接着执行了mRemote.transact来进行跨进程调用。这里的_data.writeStrongBinder最终到native层。
 
 ```
-parcel->writeStrongBinder(ibinderForJavaObject(env, object))
+static void android_os_Parcel_writeStrongBinder(JNIEnv* env, 
+jclass clazz, jlong nativePtr, jobject object)
+{
+    // 转成Native的Parcel
+    Parcel* parcel = reinterpret_cast<Parcel*>(nativePtr);
+    if (parcel != NULL) {
+        // 注意这个ibinderForJavaObject方法，
+        // 将java层IBinder转成Native层的
+        // 然后是保存这个Native的IBinder
+        const status_t err = parcel->writeStrongBinder
+        (ibinderForJavaObject(env, object));
+        if (err != NO_ERROR) {
+            signalExceptionForError(env, clazz, err);
+        }
+    }
+}
+
 //ibinderForJavaObject(env, object)返回JavaBBinder对象
 sp<IBinder> ibinderForJavaObject(JNIEnv* env, jobject obj)
 {
@@ -163,7 +179,11 @@ sp<JavaBBinder> get(JNIEnv* env, jobject obj)
     return b;
 }
 
-flattenBinder(val)
+status_t Parcel::writeStrongBinder(const sp<IBinder>& val)
+{
+    return flattenBinder(val);
+}
+
 // 由于这里的val是JavaBBinder类型。继承自BBinder，
 // 所以判断localBinder不为空，走以下流程：
 status_t Parcel::flattenBinder(const sp<IBinder>& binder)
