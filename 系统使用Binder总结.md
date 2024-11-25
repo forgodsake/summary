@@ -1,0 +1,8 @@
+安卓系统源码大量使用了binder进行IPC通信。
+
+以AMS举例，AMS持有App中的ApplicationThread类型的binder，方便对应用进行App及Activity生命周期回调等操作。而在App端，也可以通过ServiceManager拿到AMS的binder，来请求AMS进行一些Framework的操作。
+
+其中AMS跨进程调用App函数时，一般的流程是AMS跨进程操作ApplicationThread的函数，ApplicationThread再通过Handler将消息发送给ActivityThread所在的主线程，主线程收到消息后，开始进行真正的处理事务。
+
+而看过WMS后，发现WMS也是类似的方式，WMS通过调用ViewRoot内部的W类（继承于Binder）的函数来跨进程操作，W类再通过消息将事件发送给ViewRoot，由于ViewRoot本身继承于Handler，所以在收到消息后，开始进行后续的操作。
+反之，当客户端需要与WMS进行交互时（比如申请窗口），则需要依靠WindowManager来与WMS进行通信。

@@ -240,7 +240,7 @@ status_t Parcel::finishFlattenBinder(
 // 经过以上操作，将IBinder保存到内存中的某个特定区域
 ```
 
-接着到了AMS的接收部分,通过看编译后生成的IActivityManager.Stub.Class文件中对应的publishService方法：
+接着到了AMS的接收部分,通过看aidl编译后生成的IActivityManager.Stub类中对应的publishService方法：
 
 ```
 public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
@@ -455,15 +455,38 @@ static void binder_transaction(struct binder_proc *proc,
     for (buffer_offset = off_start_offset; buffer_offset < off_end_offset;
             buffer_offset += sizeof(binder_size_t)) {
         // ......
-        switch (hdr->type) {
-            case BINDER_TYPE_BINDER:
-            case BINDER_TYPE_WEAK_BINDER: {
-                struct flat_binder_object *fp;
+        case BINDER_TYPE_BINDER:
+		case BINDER_TYPE_WEAK_BINDER: {
+			struct flat_binder_object *fp;
 
-                fp = to_flat_binder_object(hdr);
-                ret = binder_translate_binder(fp, t, thread);
-                // ......
-        }
+			fp = to_flat_binder_object(hdr);
+			ret = binder_translate_binder(fp, t, thread);
+			if (ret < 0) {
+				return_error = BR_FAILED_REPLY;
+				return_error_param = ret;
+				return_error_line = __LINE__;
+				goto err_translate_failed;
+			}
+			binder_alloc_copy_to_buffer(&target_proc->alloc,
+						    t->buffer, object_offset,
+						    fp, sizeof(*fp));
+		} break;
+		case BINDER_TYPE_HANDLE:
+		case BINDER_TYPE_WEAK_HANDLE: {
+			struct flat_binder_object *fp;
+
+			fp = to_flat_binder_object(hdr);
+			ret = binder_translate_handle(fp, t, thread);
+			if (ret < 0) {
+				return_error = BR_FAILED_REPLY;
+				return_error_param = ret;
+				return_error_line = __LINE__;
+				goto err_translate_failed;
+			}
+			binder_alloc_copy_to_buffer(&target_proc->alloc,
+						    t->buffer, object_offset,
+						    fp, sizeof(*fp));
+		} break;
     // ......
 }
 
@@ -480,6 +503,35 @@ static int binder_translate_binder(struct flat_binder_object *fp,
         fp->hdr.type = BINDER_TYPE_WEAK_HANDLE;
     // ......
 }
+
+static int binder_translate_handle(struct flat_binder_object *fp,
+				   struct binder_transaction *t,
+				   struct binder_thread *thread)
+{
+	struct binder_proc *proc = thread->proc;
+	struct binder_proc *target_proc = t->to_proc;
+	struct binder_node *node;
+	struct binder_ref_data src_rdata;
+	int ret = 0;
+
+	//......
+	binder_node_lock(node);
+	if (node->proc == target_proc) {
+		// 这里正好与binder_translate_binder相反 
+		// 当传输的是BINDER_TYPE_HANDLE类型，
+		// 并且目标进程和binder进程是同一个的话 
+		// 修改type为Binder类型 
+		// 这样 在同一个进程里面的调用就会走Stub而不是Proxy类型了
+		if (fp->hdr.type == BINDER_TYPE_HANDLE)
+			fp->hdr.type = BINDER_TYPE_BINDER;
+		else
+			fp->hdr.type = BINDER_TYPE_WEAK_BINDER;
+		//......
+		binder_node_unlock(node);
+	}
+	// ......
+}
+
 
 ```
 
