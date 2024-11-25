@@ -444,7 +444,8 @@ status_t Parcel::flattenBinder(const sp<IBinder>& binder)
 
 ```
 
-在内核传输中，当传输的是BINDER_TYPE_BINDER的话，会转换成BINDER_TYPE_HANDLE：
+在内核传输中,会根据BINDER_TYPE和目标进程做一些转换工作：
+
 ```
 static void binder_transaction(struct binder_proc *proc,
 			       struct binder_thread *thread,
@@ -452,9 +453,8 @@ static void binder_transaction(struct binder_proc *proc,
 			       binder_size_t extra_buffers_size)
 {
     // ......
-    for (buffer_offset = off_start_offset; buffer_offset < off_end_offset;
-            buffer_offset += sizeof(binder_size_t)) {
         // ......
+        switch (hdr->type) {
         case BINDER_TYPE_BINDER:
 		case BINDER_TYPE_WEAK_BINDER: {
 			struct flat_binder_object *fp;
@@ -487,6 +487,7 @@ static void binder_transaction(struct binder_proc *proc,
 						    t->buffer, object_offset,
 						    fp, sizeof(*fp));
 		} break;
+		}
     // ......
 }
 
