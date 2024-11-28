@@ -1,9 +1,5 @@
 ---
-UID: 20240502071821 
-aliases: 
-tags: 
-source: 
-cssclass: 
+UID: 20240502071821
 created: 2024-05-02
 ---
 
