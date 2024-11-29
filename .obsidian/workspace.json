@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Android崩溃处理总结.md",
+                "file": "Activity启动总结.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Android崩溃处理总结"
+              "title": "Activity启动总结"
             }
           }
         ]
@@ -93,7 +93,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Android崩溃处理总结.md",
+                "file": "Activity启动总结.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +103,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Android崩溃处理总结"
+              "title": "Backlinks for Activity启动总结"
             }
           },
           {
@@ -112,12 +112,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Android崩溃处理总结.md",
+                "file": "Activity启动总结.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Android崩溃处理总结"
+              "title": "Outgoing links from Activity启动总结"
             }
           },
           {
@@ -139,10 +139,10 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Android崩溃处理总结.md"
+                "file": "Activity启动总结.md"
               },
               "icon": "lucide-list",
-              "title": "Outline of Android崩溃处理总结"
+              "title": "Outline of Activity启动总结"
             }
           }
         ]
@@ -164,6 +164,9 @@
   },
   "active": "0fba0da759469ddc",
   "lastOpenFiles": [
+    "存储优化总结.md",
+    "网络优化总结.md",
+    "系统使用Binder总结.md",
     "Android bindService通信流程总结.md",
     "Android崩溃处理总结.md"
   ]
