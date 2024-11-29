@@ -83,7 +83,7 @@ TransactionExecutor
 				// 并通过cycleToPath()函数执行执行完所有中间状态	
 				executeCallbacks(transaction);
                 executeLifecycleState(transaction);
-
+			    // 一次调用activity启动的各个生命周期函数
 ActivityThread  handleLaunchActivity(...)
 				handleStartActivity(...)
 				handleResumeActivity(...)
