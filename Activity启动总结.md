@@ -9,7 +9,10 @@ Instrumentation  execStartActivity(...)
 				 .startActivity(...)
 ActivityTaskManagerService 
 				 startActivity(...)
+				 // 这里传入了UserId 安卓支持多用户
 				 startActivityAsUser(...)
+				 // 通过ActivityStartController 
+				 // 获取ActivityStarter来启动Activity
 				 getActivityStartController()
 				 .obtainStarter(intent, "startActivityAsUser")
                  .setCaller(caller)
@@ -40,13 +43,17 @@ ActivityStack   resumeTopActivityInnerLocked(...)
 				mStackSupervisor
 				.startSpecificActivity(next, true, true);
 ActivityStackSupervisor 
-				//在此判断该进程是否已经启动
-				//已启动的执行realStartActivityLocked 
-				//未启动的执行 mService.startProcessAsync
 				startSpecificActivity(...)
+				//在此判断该进程是否已经启动
+				//已启动的执行 realStartActivityLocked 
+				//未启动的执行 mService.startProcessAsync
 				realStartActivityLocked(...)
-				
-	            mService
+				// 在此创建了要启动的Activity的
+				// LaunchActivityItem 以及
+				// ResumeActivityItem
+				// 交给 clientTransaction
+				// 最终在activityThread里面得以执行
+				mService
 	           .getLifecycleManager()
 	           .scheduleTransaction(clientTransaction);
 				
