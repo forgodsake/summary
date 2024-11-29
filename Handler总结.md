@@ -19,3 +19,9 @@ Looper在准备好之后，会进入loop函数开启死循环。并不断从queu
 进行处理，queue.next()是一个阻塞函数，它只有在时间到了或者别的地方使用了
 nativeWake()函数才会唤醒继续执行。
 
+#Handler
+无论是Handler的post类型函数还是send类型函数，最终都会调用到sendMessageAtTime函数，
+而执行时间，则是系统开机时间加上指定的时间。其中post类型函数，会把要post的Runnable包装
+为Message，指定其callback为我们发送的Runnable，最终回调是判断该callback存在，则执行
+其run方法。
+
