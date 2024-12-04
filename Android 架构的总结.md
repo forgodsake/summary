@@ -1,0 +1,8 @@
+#MVC
+一般较小的项目我们使用的mvc架构模式比较多，这种架构下，Activity既承担了Controller的职责，同时由于安卓本身的设定，又天然的承担了部分View的职责，这样的话导致分层不够清晰，Activity也容易臃肿。这是安卓Activity的设计导致的，Java项目是不存在这种情况的。
+
+#MVP
+相较于MVC模式，MVP模式需要抽取出Presenter层来和Model进行交互，这样Activity只需要专注于做好View层的工作即可。这样做，首先分层更加清晰，其次也方便于进行脱离UI的数据请求测试，同时对于不同页面有同样的数据需求，也可以方便的进行Presenter复用。
+
+#MVVM
+使用ViewModel代替了MVP模式的Presenter，首先更加解耦，MVP模式下V层和P层会互相持有对方的引用，而ViewModel采用了观察者模式，ViewModel不再持有View层的引用，而是通过通知观察者的方式通知给View。其次，ViewModel有双向绑定的支持，不仅ViewModel可以通知View，通过DataBinding等的使用，View的变化也可以传递给ViewModel。
